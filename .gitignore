@@ -1,0 +1,5 @@
+bochslog.txt
+*.out
+*.o
+*.elf
+.vscode
