@@ -10,7 +10,9 @@ mov eax, 0xCAFEBABE
 mov dword [0xb8000], 0x2f4b2f4f
 mov esp, stack_start
 call kmain
-hlt
+loop:
+    hlt
+    jmp loop
 
 section .bss
 stack_end:

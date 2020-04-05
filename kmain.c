@@ -1,6 +1,7 @@
 #include "framebuffer.h"
 #include "serial.h"
 #include "gdt.h"
+#include "idt.h"
 
 int kmain()
 {
@@ -24,6 +25,8 @@ int kmain()
 	fb_write(msg3, sizeof(msg3));
 	fb_set_cursor_pos(FB_COLS * 3);
 	gdt_init();
+	
+	idt_init(); 
 
 	fb_write(msg_done, sizeof(msg_done));
 	fb_set_cursor_pos(FB_COLS * 4);

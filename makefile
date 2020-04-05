@@ -1,4 +1,4 @@
-OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o
+OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -g
@@ -26,8 +26,11 @@ os.iso: kernel.elf
 				iso
 
 run: os.iso
-	# bochs -f bochsrc.txt -q
-	qemu-system-i386 -cdrom os.iso -serial stdio -s -S
+	qemu-system-i386 -cdrom os.iso -serial stdio -d guest_errors
+
+debug: os.iso
+	qemu-system-i386 -cdrom os.iso -serial stdio -s -S -d guest_errors &
+	gdb -q -x gdbinit
 	
 
 %.o: %.c
