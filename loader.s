@@ -9,6 +9,8 @@ start:
 mov eax, 0xCAFEBABE
 mov dword [0xb8000], 0x2f4b2f4f
 mov esp, stack_start
+
+push ebx ; align_modules
 call kmain
 loop:
     hlt

@@ -2,6 +2,7 @@
 #include "io.h"
 #include "serial.h"
 #include "keyboard.h"
+#include "framebuffer.h"
 
 static struct idt idt = { 0 };
 static struct idt_entry idt_entries[INTERRUPT_TABLE_LENGTH] = { 0 };
@@ -19,7 +20,7 @@ void idt_remap_pic()
 
     /* ICW3 */
     outb(PIC1_PORT_B, 0x04); /* Slaves attached to IR line 2 */
-    outb(PIC1_PORT_B, 0x02); /* This slave in IR line 2 of master */
+    outb(PIC2_PORT_B, 0x02); /* This slave in IR line 2 of master */
 
     /* ICW4 */
     outb(PIC1_PORT_B, 0x05 ); /* Set as master */
@@ -64,16 +65,23 @@ void idt_init()
 
 void interrupt_handler(struct cpu_state cpu, unsigned int interrupt, struct stack_state stack)
 {
-    unsigned char msg[] = "Handling interrupt.";
+    unsigned char buffer[2] = {0};
+    char result = 0;
     UNUSED_PARAM(cpu);
     UNUSED_PARAM(stack);
     UNUSED_PARAM(interrupt);
     
-    serial_write(SERIAL_COM1, msg , sizeof(msg));
+    //serial_write(SERIAL_COM1, msg , sizeof(msg));
     switch (interrupt)
     {
     case KEYBOARD_INT:
-        serial_write_ch(SERIAL_COM1, (unsigned char)scan_code_to_ascii((read_scan_code())));
+        result = scan_code_to_ascii(read_scan_code());
+        if (result == -1)
+        {
+            break;
+        }
+        buffer[0] = (unsigned char)result;
+        fb_write(buffer, sizeof(buffer) - 1);
         break;
     
     default:

@@ -68,6 +68,11 @@ unsigned char read_scan_code(void)
 char scan_code_to_ascii(unsigned char scan_code)
 {
     char ch = -1;
+    char is_break = 0x80 & scan_code; /* if msb is set it's break, otherwise make. */
+    if (is_break != 0)
+    {
+        return -1;
+    }
      switch (scan_code) {
         case KBD_SC_A:
             ch = 'a';

@@ -28,7 +28,7 @@ void fb_write_pos(unsigned short pos, unsigned char * st, int len)
 	{
 		fb_write_cell(pos + i, st[i], FB_WHITE, FB_BLACK);
 	}
-	fb_set_cursor_pos(pos + len - 1); // 1 less bc of null byte
+	fb_set_cursor_pos(pos + len); // 1 less bc of null byte
 }
 
 void fb_write(unsigned char * st, int len) 

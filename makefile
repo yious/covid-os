@@ -4,7 +4,7 @@ CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -g
 LD = ld
 LFLAGS = -T link.ld -melf_i386
-AS = nasm
+AS = nasm -g
 ASFLAGS = -f elf
 
 all: os.iso
@@ -14,6 +14,7 @@ kernel.elf: $(OBJECTS)
 
 os.iso: kernel.elf
 	cp kernel.elf iso/boot/kernel.elf
+	cp apps/program iso/modules/program
 	genisoimage -R \
 				-b boot/grub/stage2_eltorito \
 				-no-emul-boot  \
