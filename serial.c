@@ -63,3 +63,12 @@ void serial_write(unsigned short com, unsigned char * data, unsigned int length)
     }
     
 }
+
+void serial_puts(unsigned short com, char * s)
+{
+    int i = 0;
+    while(s[i] != 0)
+    {
+        serial_write_ch(com, s[i]);
+    }
+}

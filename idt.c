@@ -6,6 +6,7 @@
 
 static struct idt idt = { 0 };
 static struct idt_entry idt_entries[INTERRUPT_TABLE_LENGTH] = { 0 };
+static interrupt_handler_callback interrupt_handlers[INTERRUPT_TABLE_LENGTH] = { 0 };
 
 void idt_remap_pic()
 {   
@@ -62,30 +63,34 @@ void idt_init()
     lidt(&idt);
 }
 
-
-void interrupt_handler(struct cpu_state cpu, unsigned int interrupt, struct stack_state stack)
+int register_interrupt_handler(unsigned int code, interrupt_handler_callback cb)
 {
-    unsigned char buffer[2] = {0};
-    char result = 0;
-    UNUSED_PARAM(cpu);
-    UNUSED_PARAM(stack);
-    UNUSED_PARAM(interrupt);
-    
-    //serial_write(SERIAL_COM1, msg , sizeof(msg));
-    switch (interrupt)
+    if (code >= INTERRUPT_TABLE_LENGTH)
     {
-    case KEYBOARD_INT:
-        result = scan_code_to_ascii(read_scan_code());
-        if (result == -1)
-        {
-            break;
-        }
-        buffer[0] = (unsigned char)result;
-        fb_write(buffer, sizeof(buffer) - 1);
-        break;
-    
-    default:
-        break;
+        serial_puts(SERIAL_COM1, "Tried to register invalid interrupt code\n");
+        return 1;
+    }
+    if (interrupt_handlers[code] != 0)
+    {
+        serial_puts(SERIAL_COM1, "There is already interrupt code handler registered. Ignoring\n");
+        return 2;
+    }
+
+    interrupt_handlers  [code] = cb;
+    return 0;
+}
+
+void interrupt_service_handler(struct cpu_state cpu, unsigned int interrupt, struct stack_state stack)
+{
+    int result = 0;
+    if (interrupt_handlers[interrupt] != 0) 
+    {
+        result = interrupt_handlers[interrupt](cpu, interrupt, stack);
+    }
+    if (result != 0)
+    {
+        // Should do something
+        serial_puts(SERIAL_COM1, "Interrupt failed"); 
     }
     pic_acknowledge(interrupt);
 }

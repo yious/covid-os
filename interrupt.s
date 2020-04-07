@@ -1,4 +1,4 @@
-extern interrupt_handler
+extern interrupt_service_handler
 
 %macro no_error_code_interrupt_handler 1
 global interrupt_handler_%1
@@ -16,6 +16,7 @@ interrupt_handler_%1:
 %endmacro
 
 common_interrupt_handler:               ; the common parts of the generic interrupt handler
+    cli
     ; save the registers
     push edi
     push esi
@@ -27,7 +28,7 @@ common_interrupt_handler:               ; the common parts of the generic interr
     push eax
 
     ; call the C function
-    call    interrupt_handler
+    call    interrupt_service_handler
     ; restore the registers
     pop eax
     pop ebx
@@ -41,30 +42,31 @@ common_interrupt_handler:               ; the common parts of the generic interr
     ; restore the esp
     add     esp, 8
     ; return to the code that got interrupted
+    sti
     iret
 
 ; protected mode exceptions
-no_error_code_interrupt_handler 0       ; create handler for interrupt 0
-no_error_code_interrupt_handler 1       ; create handler for interrupt 1
-no_error_code_interrupt_handler 2       ; create handler for interrupt 1.
-no_error_code_interrupt_handler 3       ; create handler for interrupt 1
-no_error_code_interrupt_handler 4       ; create handler for interrupt 1
-no_error_code_interrupt_handler 5       ; create handler for interrupt 1
-no_error_code_interrupt_handler 6       ; create handler for interrupt 1
-no_error_code_interrupt_handler 7       ; create handler for interrupt 1
-error_code_interrupt_handler    8       ; create handler for interrupt 7
-no_error_code_interrupt_handler 9       ; create handler for interrupt 1
-error_code_interrupt_handler    10       ; create handler for interrupt 7
-error_code_interrupt_handler    11       ; create handler for interrupt 7
-error_code_interrupt_handler    12       ; create handler for interrupt 7
-error_code_interrupt_handler    13       ; create handler for interrupt 7
-error_code_interrupt_handler    14       ; create handler for interrupt 7
-error_code_interrupt_handler    15       ; create handler for interrupt 7
-no_error_code_interrupt_handler 16       ; create handler for interrupt 1
-error_code_interrupt_handler    17       ; create handler for interrupt 7
-no_error_code_interrupt_handler 18       ; create handler for interrupt 1
-no_error_code_interrupt_handler 19       ; create handler for interrupt 1
-no_error_code_interrupt_handler 20       ; create handler for interrupt 1
+no_error_code_interrupt_handler 0       ; create handler for interrupt 0 
+no_error_code_interrupt_handler 1       ; create handler for interrupt 1 
+no_error_code_interrupt_handler 2       ; create handler for interrupt 2 
+no_error_code_interrupt_handler 3       ; create handler for interrupt 3 
+no_error_code_interrupt_handler 4       ; create handler for interrupt 4 
+no_error_code_interrupt_handler 5       ; create handler for interrupt 5 
+no_error_code_interrupt_handler 6       ; create handler for interrupt 6 
+no_error_code_interrupt_handler 7       ; create handler for interrupt 7 
+error_code_interrupt_handler    8       ; create handler for interrupt 8 
+no_error_code_interrupt_handler 9       ; create handler for interrupt 9 
+error_code_interrupt_handler    10      ; create handler for interrupt 10
+error_code_interrupt_handler    11      ; create handler for interrupt 11
+error_code_interrupt_handler    12      ; create handler for interrupt 12
+error_code_interrupt_handler    13      ; create handler for interrupt 13
+error_code_interrupt_handler    14      ; create handler for interrupt 14
+error_code_interrupt_handler    15      ; create handler for interrupt 15
+no_error_code_interrupt_handler 16      ; create handler for interrupt 16
+error_code_interrupt_handler    17      ; create handler for interrupt 17
+no_error_code_interrupt_handler 18      ; create handler for interrupt 18
+no_error_code_interrupt_handler 19      ; create handler for interrupt 19
+no_error_code_interrupt_handler 20      ; create handler for interrupt 20
 
 ; irqs 
 no_error_code_interrupt_handler 32 

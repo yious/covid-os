@@ -1,4 +1,4 @@
-OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o
+OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -g
@@ -9,7 +9,7 @@ ASFLAGS = -f elf
 
 all: os.iso
 
-kernel.elf: $(OBJECTS)
+kernel.elf: $(OBJECTS) link.ld
 		$(LD) $(LFLAGS) $(OBJECTS) -o kernel.elf
 
 os.iso: kernel.elf

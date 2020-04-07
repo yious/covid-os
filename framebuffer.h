@@ -15,6 +15,11 @@
 
 #define FB_ADDRESS 0x000b8000
 
+struct cursor_location {
+    unsigned short x;
+    unsigned short y;
+} __attribute__((packed));
+typedef struct cursor_location cursor_location_t;
 
 struct framebuffer {
     unsigned char ascii;
@@ -23,12 +28,15 @@ struct framebuffer {
 
 void fb_init();
 
-void fb_write_cell(int offset, unsigned char ch, int fg, int bg);
+void fb_puts(char * s);
+void fb_putch(char c);
+void fb_put_dec(unsigned int dec);
+void fb_put_hex(unsigned int hex);
+void fb_clear();
 
-void fb_write_pos(unsigned short pos, unsigned char * st, int len);
-
-void fb_write(unsigned char * st, int len);
-
+void fb_update_cursor();
 void fb_set_cursor_pos(unsigned short pos);
+
+void fb_scroll();
 
 #endif // FRAMEBUFFER_H
