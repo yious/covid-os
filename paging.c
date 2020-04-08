@@ -1,70 +1,48 @@
 #include "paging.h"
+#include "serial.h"
+#include "framebuffer.h"
+#include "common.h"
 
+static unsigned int * page_directory = (unsigned int *)0x9C000;
+static unsigned int * page_table = (unsigned int *)0x9D000;
 
-void setup_pde(unsigned int virt, unsigned int phys, unsigned short flags)
+void paging_init()
 {
-    unsigned int * pde = (unsigned int *)pde_start;
-    unsigned short id = virt >> 22;
-    pde[id] = 0 | flags;
-    if (flags & PAGING_PAGE_SIZE_4MB)
+    /* Fill out the first 4MB */
+    // Fill the first pde
+    page_directory[0] = (unsigned int)page_table | PAGING_FLAGS_PRESENT | PAGING_FLAGS_READ_WRITE | PAGING_FLAGS_PRIV_KERNEL;
+
+    // fill the appropriate pte
+    for(int i = 0; i < 1024; i++)
     {
-        pde[id] |= phys & 0b11111111110000000000000000000000;
+        page_table[i] = i * 4096 | PAGING_FLAGS_PRESENT | PAGING_FLAGS_READ_WRITE;
     }
-    else
+
+    // fill the rest of the pde with non allocated pages
+    for (unsigned int i = 1; i < 1024; i++)
     {
-        //
-        // pde[id] = 
+        page_directory[i] = 0 | PAGING_FLAGS_NOT_PRESENT | PAGING_FLAGS_READ_WRITE;
     }
+    register_interrupt_handler(PAGEFAULT_INT, pagefault_interrupt_handler);
+    paging_enable(page_directory);
 }
 
-// static pde_t pde[IDENTITY_PAGING_PDE_SIZE] = {0}; 
-void setup_pde_old(
-    pde_t * out, // should be zeroed out
-    unsigned char present, // present
-    unsigned char is_rw, // read/write
-    unsigned char priv, // user/supervisor
-    unsigned char pwt, // page-level write-through
-    unsigned char pcd, // page level cache disable
-    unsigned char page_size, // page size 
-    unsigned char global,
-    unsigned int address // page-table base address/page base address
-    )
+int pagefault_interrupt_handler(cpu_state_t cpu, unsigned int interrupt, stack_state_t stack)
 {
-    out->flags |= present & PAGING_PRESENT;
-    out->flags |= is_rw & PAGING_RW;
-    out->flags |= priv & PAGING_PRIV;
-    out->flags |= pwt & PAGING_PWT;
-    out->flags |= pcd & PAGING_PCD;
-    out->flags |= page_size & PAGING_PAGE_SIZE;
+    UNUSED(cpu);
+    UNUSED(interrupt);
+    UNUSED(stack);
 
-    (void)global;
+    serial_puts(SERIAL_COM1, "Pagefault. addr:");
+    serial_put_hex(SERIAL_COM1, get_faulting_address());
+    serial_puts(SERIAL_COM1, ". eip:");
+    serial_put_hex(SERIAL_COM1, stack.eip);
+    serial_puts(SERIAL_COM1, ". code:");
+    serial_put_hex(SERIAL_COM1, stack.error_code);
+    serial_puts(SERIAL_COM1, ". \n");
+    fb_puts("Pagefault");
 
-    if (page_size == PAGING_PAGE_SIZE_4KB)
-    {
-        // bits 12-31: page-table base address
-        out->middle |= (address & 0xF ) << 12;
-        out->high_address = address >> 4;
-    } 
-    else 
-    {
-        // PAGING_4MB
-        // bit 12: pat (0)
-        // bits 13-21: reserved (0)
-        // bits 22-31: page base address
-        out->high_address |= address << 6;
-    }
-}
+    PANIC("PAGEFAULT")
 
-void paging_init(void)
-{
-    /* Configure 1000 PDE's */ 
-    pde_t * pde = (pde_t *)pde_start;
-    for (unsigned int i = 0; i < IDENTITY_PAGING_PDE_SIZE; i++)
-    {
-        setup_pde(i << 22, i << 22 , PAGING_PRESENT | PAGING_RW | PAGING_PRIVLEGE_SUPERVISOR | PAGING_PAGE_SIZE_4MB);
-
-    }
-    
-    /* */
-    paging_enable(pde);
+    return 0;
 }

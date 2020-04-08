@@ -20,5 +20,6 @@ int serial_is_fifo_empty(unsigned short com);
 void serial_write_ch(unsigned short com, unsigned char data);
 void serial_write(unsigned short com, unsigned char * data, unsigned int length);
 void serial_puts(unsigned short com, char * s);
+void serial_put_hex(unsigned short com, unsigned int hex);
 
 #endif // SERIAL_H

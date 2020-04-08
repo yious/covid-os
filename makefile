@@ -1,11 +1,11 @@
-OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o
+OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o common.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
-		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -g
+		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -gdwarf -fno-pic
 LD = ld
 LFLAGS = -T link.ld -melf_i386
-AS = nasm -g
-ASFLAGS = -f elf
+AS = nasm
+ASFLAGS = -f elf -g -F dwarf
 
 all: os.iso
 

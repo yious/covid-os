@@ -36,6 +36,12 @@ int kmain(multiboot_info_t * multiboot_info)
 	timer_init(50);
 	fb_puts("timer done.\n");
 
+	paging_init();
+	fb_puts("Paging enabled");
+
+	// trigger page fault
+	*(unsigned int *)(0x80000000) = 1;
+
 	if (check_multiboot_flags(multiboot_info->flags) != 1)
 	{
 		fb_puts("Invalid flags");

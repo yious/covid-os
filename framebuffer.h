@@ -13,7 +13,7 @@
 #define INDEX_REGISTER_PORT 0x3D4
 #define DATA_REGISTER_PORT 0x3D5
 
-#define FB_ADDRESS 0x000b8000
+#define FB_ADDRESS 0xC03FF000
 
 struct cursor_location {
     unsigned short x;

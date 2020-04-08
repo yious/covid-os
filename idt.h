@@ -20,6 +20,7 @@
 #define PIC_ACK     0x20
 
 /* INTERRUPTS */
+#define PAGEFAULT_INT 0xE
 #define TIMER_INT 0x20
 #define KEYBOARD_INT 0x21
 

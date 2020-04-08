@@ -72,7 +72,9 @@ int register_interrupt_handler(unsigned int code, interrupt_handler_callback cb)
     }
     if (interrupt_handlers[code] != 0)
     {
-        serial_puts(SERIAL_COM1, "There is already interrupt code handler registered. Ignoring\n");
+        serial_puts(SERIAL_COM1, "There is already interrupt code handler registered. code:");
+        serial_put_hex(SERIAL_COM1, code);
+        serial_puts(SERIAL_COM1, "\n");
         return 2;
     }
 

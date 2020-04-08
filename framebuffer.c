@@ -23,6 +23,9 @@ void fb_clear()
 		fb[i].ascii = blank;
 		fb[i].attr = attr;
 	}
+	cur_loc.x = 0; 
+	cur_loc.y = 0; 
+	fb_update_cursor();
 }
 
 void fb_scroll()

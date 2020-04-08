@@ -15,8 +15,8 @@ paging_enable:
     mov cr0, eax
     
     ret
-    
-section .pde
-global pde_start
-pde_start:
-    times 1024 dd 0
+
+global get_faulting_address
+get_faulting_address:
+    mov eax, cr2
+    ret

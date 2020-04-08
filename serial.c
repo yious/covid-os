@@ -70,5 +70,31 @@ void serial_puts(unsigned short com, char * s)
     while(s[i] != 0)
     {
         serial_write_ch(com, s[i]);
+        ++i;
     }
+}
+
+void serial_put_hex(unsigned short com, unsigned int hex)
+{
+	char digits[] = "0123456789abcdef";
+	unsigned char digit = 0; 
+	char buff[34] = { 0 };
+	int i = 32; // last offset is \0
+	
+	if (hex == 0)
+	{
+		serial_puts(com, "0x0");
+		return;
+	}
+
+	while(hex != 0)
+	{
+		digit = hex % 16;
+		buff[i - 1] = digits[digit];
+		hex /= 16;
+		--i;
+	}
+	buff[--i] = 'x';
+	buff[--i] = '0';
+	serial_puts(com, buff + i);
 }
