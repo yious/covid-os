@@ -1,5 +1,5 @@
-file kernel.elf
 target remote :1234
+file kernel.elf 
 layout asm
 layout regs
-b *(start - 0xc0000000)
+b start

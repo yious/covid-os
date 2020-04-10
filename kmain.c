@@ -14,10 +14,30 @@
 
 typedef int (*call_module_t)(void);
 
+multiboot_info_t * remap_multiboot(multiboot_info_t * multiboot_info)
+{
+	module_t * current_module = 0;
+	// fixing only the neccassary fields
+	multiboot_info_t * updated_info = (multiboot_info_t * )physical_to_virtual((unsigned int)multiboot_info);
+	updated_info->mmap_addr = physical_to_virtual(updated_info->mmap_addr);
+	updated_info->mods_addr = physical_to_virtual(updated_info->mods_addr);
+	current_module = (module_t *)updated_info->mods_addr;
+	for (unsigned int i = 0; i < updated_info->mods_count; i++)
+	{
+		current_module[i].mod_start = physical_to_virtual(current_module[i].mod_start);
+		current_module[i].mod_end = physical_to_virtual(current_module[i].mod_end);
+		current_module[i].string = physical_to_virtual(current_module[i].string);
+	}
+	
+	return updated_info;
+}
+
 int kmain(multiboot_info_t * multiboot_info)
 {
 	module_t * current_module = { 0 };
 	call_module_t program = 0;
+	// we should fix the multiboot info
+	multiboot_info = remap_multiboot(multiboot_info);
 
 	fb_init();
 	fb_puts("Framebuffer done.\n");
@@ -40,35 +60,19 @@ int kmain(multiboot_info_t * multiboot_info)
 	paging_init();
 	fb_puts("Paging enabled");
 
-	pfa_init();
+	pfa_init(multiboot_info);
 
-	// trigger page fault
 
-	if (check_multiboot_flags(multiboot_info->flags) != 1)
-	{
-		fb_puts("Invalid flags");
-		fb_put_hex(multiboot_info->flags);
-		fb_puts("\n");
-		serial_write(SERIAL_COM1, (unsigned char*)MULTIBOOT_FLAGS_INVALID, sizeof(MULTIBOOT_FLAGS_INVALID));
-		return -1;
-	}
-	if (0 == multiboot_info->mods_count)
-	{
-		fb_puts("Invalid module count");
-		fb_put_hex(multiboot_info->mods_count);
-		fb_puts("\n");
-		serial_write(SERIAL_COM1, (unsigned char *)MULTIBOOT_INVALID_MOD_COUNT, sizeof(MULTIBOOT_INVALID_MOD_COUNT));
-		return -2;
-	}
 
 	current_module = (module_t *)multiboot_info->mods_addr;
 	program = (call_module_t)current_module->mod_start;
 
+	// we should map the module before jumping 
 	fb_puts("Jumping to user mode program at ");
 	fb_put_hex(current_module->mod_start);
 	fb_puts("\n");
-	(void)program; //program();
+	(void)program; //();
 
-	fb_puts("This should never be reached");
+	fb_puts("This should never be reached \n");
 	return 0xDEADBEEF;
 }

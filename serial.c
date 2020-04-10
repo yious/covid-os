@@ -98,3 +98,48 @@ void serial_put_hex(unsigned short com, unsigned int hex)
 	buff[--i] = '0';
 	serial_puts(com, buff + i);
 }
+
+void serial_put_hex64(unsigned short com, unsigned long long hex)
+{
+    char digits[] = "0123456789abcdef";
+	unsigned char digit = 0; 
+	char buff[66] = { 0 };
+	int i = 64; // last offset is \0
+	
+	if (hex == 0)
+	{
+		serial_puts(com, "0x0");
+		return;
+	}
+
+	while(hex != 0)
+	{
+		digit = hex % 16;
+		buff[i - 1] = digits[digit];
+		hex /= 16;
+		--i;
+	}
+	buff[--i] = 'x';
+	buff[--i] = '0';
+	serial_puts(com, buff + i);
+}
+
+void serial_put_dec(unsigned short com, unsigned int num)
+{
+	unsigned char digit = 0; 
+	int i = 0; 
+	char buff[33] = { 0 };
+	if (num == 0)
+	{
+		serial_puts(com, "0");
+		return;
+	}
+	while(num != 0)
+	{
+		digit = num % 10;
+		buff[32 - i - 1] = digit + '0';
+		num /= 10;
+		++i;
+	}
+	serial_puts(com, buff + 32 - i);
+}

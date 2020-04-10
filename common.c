@@ -1,6 +1,13 @@
 #include "common.h"
 #include "framebuffer.h"
 
+unsigned int physical_to_virtual(unsigned int paddr)
+{
+    // TODO: make magic number a constant
+    return 0xc0000000 + paddr;
+}
+
+
 void panic(char *message, char *file, unsigned int line)
 {
     asm volatile("cli"); // Disable interrupts.

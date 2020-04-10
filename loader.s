@@ -4,8 +4,8 @@ PAGE_SIZE       equ 4096
 
 global start
 extern kmain
-extern _kernel_start
-extern _kernel_end
+extern _kernel_physical_start
+extern _kernel_physical_end
 
 section .text
 bits 32
@@ -21,7 +21,7 @@ loop_start:
     ; map the kernel and all the memory below it 
     ; cmp esi, _kernel_start - KERNEL_OFFSET ; before the kernel. skip.
     ; jl loop_increment
-    cmp esi, _kernel_end - KERNEL_OFFSET ; were trying to map after. finish the loop.
+    cmp esi, _kernel_physical_end ; were trying to map after. finish the loop.
     jge after_loop
 
     ; this is valid kernel page which should be mapped
@@ -74,6 +74,7 @@ stack_end:
     resb STACK_SIZE
 stack_start:
 
+align 4096
 boot_page_directory:
     resb PAGE_SIZE
 boot_page_table1:

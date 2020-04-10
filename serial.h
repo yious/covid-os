@@ -21,5 +21,7 @@ void serial_write_ch(unsigned short com, unsigned char data);
 void serial_write(unsigned short com, unsigned char * data, unsigned int length);
 void serial_puts(unsigned short com, char * s);
 void serial_put_hex(unsigned short com, unsigned int hex);
+void serial_put_hex64(unsigned short com, unsigned long long hex);
+void serial_put_dec(unsigned short com, unsigned int num);
 
 #endif // SERIAL_H

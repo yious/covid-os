@@ -1,4 +1,8 @@
-OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o common.o pfa.o pfa_asm.o
+SOURCES = $(wildcard *.c) $(wildcard *.s)
+OBJECTS = $(patsubst %.s,%.o,$(SOURCES))
+OBJECTS := $(patsubst %.c,%.o,$(OBJECTS))
+HEADERS = $(wildcard *.h)
+# OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o common.o pfa.o pfa_asm.o
 CC = gcc
 CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -gdwarf -fno-pic
@@ -30,14 +34,18 @@ run: os.iso
 	qemu-system-i386 -cdrom os.iso -serial stdio -d guest_errors
 
 debug: os.iso
+	qemu-system-i386 -cdrom os.iso -monitor stdio -s -S -d guest_errors
+	
+
+gdb: os.iso
 	qemu-system-i386 -cdrom os.iso -serial stdio -s -S -d guest_errors &
 	gdb -q -x gdbinit
 	
 
-%.o: %.c
+%.o: %.c makefile $(HEADERS)
 	$(CC) $(CFLAGS) $< -o $@
 
-%.o: %.s
+%.o: %.s makefile
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
