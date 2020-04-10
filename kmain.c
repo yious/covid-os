@@ -40,7 +40,6 @@ int kmain(multiboot_info_t * multiboot_info)
 	fb_puts("Paging enabled");
 
 	// trigger page fault
-	*(unsigned int *)(0x80000000) = 1;
 
 	if (check_multiboot_flags(multiboot_info->flags) != 1)
 	{
@@ -65,7 +64,7 @@ int kmain(multiboot_info_t * multiboot_info)
 	fb_puts("Jumping to user mode program at ");
 	fb_put_hex(current_module->mod_start);
 	fb_puts("\n");
-	program();
+	(void)program; //program();
 
 	fb_puts("This should never be reached");
 	return 0xDEADBEEF;
