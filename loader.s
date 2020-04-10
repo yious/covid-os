@@ -18,8 +18,8 @@ start:
     mov esi, 0 ; points to the memory to be mapped 
     mov ecx, 1024
 loop_start:
-    ; map only the kernel
-    ; cmp esi, _kernel_start - KERNEL_OFFSET ; were trying to map before the kernel. skip.
+    ; map the kernel and all the memory below it 
+    ; cmp esi, _kernel_start - KERNEL_OFFSET ; before the kernel. skip.
     ; jl loop_increment
     cmp esi, _kernel_end - KERNEL_OFFSET ; were trying to map after. finish the loop.
     jge after_loop

@@ -6,6 +6,7 @@
 #include "multiboot.h"
 #include "paging.h"
 #include "timer.h"
+#include "pfa.h"
 
 #define MULTIBOOT_FLAGS_INVALID "Multiboot invalid flags"
 #define MULTIBOOT_INVALID_MOD_COUNT "Multiboot invalid modules count"
@@ -38,6 +39,8 @@ int kmain(multiboot_info_t * multiboot_info)
 
 	paging_init();
 	fb_puts("Paging enabled");
+
+	pfa_init();
 
 	// trigger page fault
 
