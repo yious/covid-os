@@ -4,6 +4,8 @@ PAGE_SIZE       equ 4096
 
 global start
 extern kmain
+extern _kernel_virtual_start
+extern _kernel_virtual_end
 extern _kernel_physical_start
 extern _kernel_physical_end
 
@@ -11,6 +13,7 @@ section .text
 bits 32
 start:
     mov dword [0xb8000], 0x2f4b2f4f ; show that our code start running
+    mov dword [0], 0x41414141
 
     ; setup pte
     ; make both addresses 
@@ -52,7 +55,7 @@ after_loop:
     or eax, 0x80000000
     mov cr0, eax
 
-    ; jump to the virtual address of the kernel 
+    ; jump to the virtual address of the kernel (0xC0...)
     mov ecx, abs_jmp
     jmp ecx
 abs_jmp:
@@ -60,8 +63,15 @@ abs_jmp:
     mov dword [boot_page_directory], 0
 
     invlpg [0] ; refresh the tlb
-
-    mov esp, stack_start
+    mov esp, stack_start ; update the stack pointer
+    
+    push boot_page_table1
+    push boot_page_directory
+    
+    push _kernel_physical_end
+    push _kernel_physical_start
+    push _kernel_virtual_end
+    push _kernel_virtual_start
     push ebx ; multiboot_info
 
     call kmain

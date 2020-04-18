@@ -28,7 +28,7 @@ struct framebuffer {
 
 void fb_init();
 
-void fb_puts(char * s);
+void fb_puts(const char * s);
 void fb_putch(char c);
 void fb_put_dec(unsigned int dec);
 void fb_put_hex(unsigned int hex);

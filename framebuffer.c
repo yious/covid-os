@@ -57,7 +57,7 @@ void fb_update_cursor()
 	fb_set_cursor_pos(cur_loc.y * FB_COLS + cur_loc.x);
 }
 
-void fb_puts(char * s)
+void fb_puts(const char * s)
 {
 	unsigned int i = 0; 
 	while (s[i] != 0)

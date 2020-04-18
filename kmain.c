@@ -1,3 +1,4 @@
+#include "loader.h"
 #include "framebuffer.h"
 #include "serial.h"
 #include "gdt.h"
@@ -32,16 +33,18 @@ multiboot_info_t * remap_multiboot(multiboot_info_t * multiboot_info)
 	return updated_info;
 }
 
-int kmain(multiboot_info_t * multiboot_info)
+int kmain(multiboot_info_t * multiboot_info, kernel_memory_info_t mem, unsigned int pdt_vaddr, unsigned int pt_vaddr)
 {
 	module_t * current_module = { 0 };
 	call_module_t program = 0;
+	unsigned int free_vaddr = 0;
+	unsigned int free_paddr = 0;
 	// we should fix the multiboot info
 	multiboot_info = remap_multiboot(multiboot_info);
 
 	fb_init();
 	fb_puts("Framebuffer done.\n");
-	
+
 	serial_init_port(SERIAL_COM1);
 	fb_puts("Serial done.\n");
 
@@ -57,21 +60,26 @@ int kmain(multiboot_info_t * multiboot_info)
 	timer_init(50);
 	fb_puts("timer done.\n");
 
-	paging_init();
+	paging_init(pdt_vaddr, pt_vaddr);
 	fb_puts("Paging enabled");
+	pfa_init(multiboot_info, &mem); // there is depedency between pfa_alloc and paging_commit_mem 
 
-	pfa_init(multiboot_info);
+	free_vaddr = 0x13371000; // paging_find_free_next_kernel_vaddr(PAGE_SIZE * 2);
+	paging_commit_mem(free_vaddr, free_paddr, PAGE_SIZE, PAGING_FLAGS_READ_WRITE);
 
+	fb_put_hex(pfa_alloc());
+	fb_put_hex(pfa_alloc());
+	fb_put_hex(pfa_alloc());
 
 
 	current_module = (module_t *)multiboot_info->mods_addr;
 	program = (call_module_t)current_module->mod_start;
 
-	// we should map the module before jumping 
+	// we should map into virtual memory the module before jumping 
 	fb_puts("Jumping to user mode program at ");
 	fb_put_hex(current_module->mod_start);
 	fb_puts("\n");
-	(void)program; //();
+	(void)program();
 
 	fb_puts("This should never be reached \n");
 	return 0xDEADBEEF;

@@ -4,7 +4,7 @@ OBJECTS := $(patsubst %.c,%.o,$(OBJECTS))
 HEADERS = $(wildcard *.h)
 # OBJECTS = multiboot.o loader.o kmain.o framebuffer.o io.o serial.o lgdt.o gdt.o idt.o interrupt.o keyboard.o paging.o paging_asm.o timer.o common.o pfa.o pfa_asm.o
 CC = gcc
-CFLAGS = -m32 -nostdlib -nostdinc -fno-builtin -fno-stack-protector \
+CFLAGS = -m32 -nostdlib -fno-builtin -fno-stack-protector \
 		 -nostartfiles -nodefaultlibs -Wall -Wextra -Werror -c -gdwarf -fno-pic
 LD = ld
 LFLAGS = -T link.ld -melf_i386
@@ -14,7 +14,7 @@ ASFLAGS = -f elf -g -F dwarf
 all: os.iso
 
 kernel.elf: $(OBJECTS) link.ld
-		$(LD) $(LFLAGS) $(OBJECTS) -o kernel.elf
+	$(LD) $(LFLAGS) $(OBJECTS) -L "/usr/lib/gcc/x86_64-linux-gnu/7/32/" -lgcc -o kernel.elf 
 
 os.iso: kernel.elf
 	cp kernel.elf iso/boot/kernel.elf

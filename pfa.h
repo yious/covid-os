@@ -1,3 +1,4 @@
+#include "loader.h"
 #include "multiboot.h"
 
 struct mmap_entry
@@ -10,10 +11,8 @@ struct mmap_entry
 
 typedef struct mmap_entry mmap_entry_t;
 
-extern unsigned int _kernel_physical_end; 
-
-void pfa_init(multiboot_info_t * mbinfo);
+void pfa_init(multiboot_info_t * mbinfo, kernel_memory_info_t * kmem);
 void pfa_setup(unsigned int * storage, unsigned int len);
 
-unsigned int pfa_alloc(unsigned int size);
-void pfa_free(unsigned int vaddr);
+unsigned int pfa_alloc();
+void pfa_free(unsigned int paddr);

@@ -7,8 +7,17 @@ unsigned int physical_to_virtual(unsigned int paddr)
     return 0xc0000000 + paddr;
 }
 
+void * memset (void * ptr, int value, unsigned int num)
+{
+    for (unsigned int i = 0; i < num; i++)
+    {
+        *((char *)ptr + i) = value;
+    }
+    return ptr;
+}
 
-void panic(char *message, char *file, unsigned int line)
+
+void panic(const char *message, char *file, unsigned int line)
 {
     asm volatile("cli"); // Disable interrupts.
 
