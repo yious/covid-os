@@ -1,4 +1,5 @@
 #include "loader.h"
+#include "math.h"
 #include "framebuffer.h"
 #include "serial.h"
 #include "gdt.h"
@@ -8,12 +9,12 @@
 #include "paging.h"
 #include "timer.h"
 #include "pfa.h"
-
-#define MULTIBOOT_FLAGS_INVALID "Multiboot invalid flags"
-#define MULTIBOOT_INVALID_MOD_COUNT "Multiboot invalid modules count"
-#define IDT_INIT_MSG "init idt"
+#include "kmalloc.h"
+#include "log.h"
 
 typedef int (*call_module_t)(void);
+
+extern void switch_to_um(unsigned int esp, unsigned int code);
 
 multiboot_info_t * remap_multiboot(multiboot_info_t * multiboot_info)
 {
@@ -33,12 +34,29 @@ multiboot_info_t * remap_multiboot(multiboot_info_t * multiboot_info)
 	return updated_info;
 }
 
+static void jump_usermode(module_t * mod_info)
+{
+	unsigned int stack_paddr = pfa_alloc(1);
+	unsigned int user_mode_stack_addr = 0xBFFFFFFB;
+	unsigned int user_mode_code_addr = 0;
+	unsigned int code_size = mod_info->mod_end - mod_info->mod_start;
+	unsigned int physical_code_paddr = pfa_alloc(div_ceil(code_size, PAGE_SIZE));
+
+	paging_commit_mem(user_mode_stack_addr & 0xFFFFF000, stack_paddr, PAGE_SIZE, PAGING_FLAGS_PRIV_USER | PAGING_FLAGS_READ_WRITE);
+	paging_commit_mem(user_mode_code_addr &0xFFFFF000, physical_code_paddr, code_size, PAGING_FLAGS_PRIV_USER | PAGING_FLAGS_READ_WRITE);
+
+	paging_commit_mem(mod_info->mod_start, mod_info->mod_start-0xc0000000, code_size, PAGING_FLAGS_PRIV_KERNEL | PAGING_FLAGS_READ_ONLY);
+	memcpy((void *)user_mode_code_addr, (void *)mod_info->mod_start, code_size);
+	paging_free_mem(mod_info->mod_start, code_size);
+
+	log_info("Jumping to program: \"%s\"\n", mod_info->string);
+	log_info("stack paddr: %u, stack vaddr: %p, stack size: %u\n", stack_paddr, user_mode_stack_addr, PAGE_SIZE);
+	log_info("code paddr: %u, code vaddr: %p, code size: %u\n", stack_paddr, user_mode_stack_addr, PAGE_SIZE);
+	switch_to_um(user_mode_stack_addr, user_mode_code_addr);
+}
+
 int kmain(multiboot_info_t * multiboot_info, kernel_memory_info_t mem, unsigned int pdt_vaddr, unsigned int pt_vaddr)
 {
-	module_t * current_module = { 0 };
-	call_module_t program = 0;
-	unsigned int free_vaddr = 0;
-	unsigned int free_paddr = 0;
 	// we should fix the multiboot info
 	multiboot_info = remap_multiboot(multiboot_info);
 
@@ -47,6 +65,8 @@ int kmain(multiboot_info_t * multiboot_info, kernel_memory_info_t mem, unsigned 
 
 	serial_init_port(SERIAL_COM1);
 	fb_puts("Serial done.\n");
+
+	log_init();
 
 	gdt_init();
 	fb_puts("gdt done.\n");
@@ -64,22 +84,7 @@ int kmain(multiboot_info_t * multiboot_info, kernel_memory_info_t mem, unsigned 
 	fb_puts("Paging enabled");
 	pfa_init(multiboot_info, &mem); // there is depedency between pfa_alloc and paging_commit_mem 
 
-	free_vaddr = 0x13371000; // paging_find_free_next_kernel_vaddr(PAGE_SIZE * 2);
-	paging_commit_mem(free_vaddr, free_paddr, PAGE_SIZE, PAGING_FLAGS_READ_WRITE);
-
-	fb_put_hex(pfa_alloc());
-	fb_put_hex(pfa_alloc());
-	fb_put_hex(pfa_alloc());
-
-
-	current_module = (module_t *)multiboot_info->mods_addr;
-	program = (call_module_t)current_module->mod_start;
-
-	// we should map into virtual memory the module before jumping 
-	fb_puts("Jumping to user mode program at ");
-	fb_put_hex(current_module->mod_start);
-	fb_puts("\n");
-	(void)program();
+	jump_usermode((module_t *)multiboot_info->mods_addr);
 
 	fb_puts("This should never be reached \n");
 	return 0xDEADBEEF;

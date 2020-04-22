@@ -14,7 +14,8 @@
 #define FALSE   0
 
 unsigned int physical_to_virtual(unsigned int paddr);
-void * memset ( void * ptr, int value, unsigned int num );
+void * memset(void * ptr, int value, unsigned int num );
+void * memcpy(void * destination, const void * source, unsigned int num);
 void panic(const char *message, char *file, unsigned int line);
 
 #endif // COMMON_H
