@@ -64,7 +64,7 @@ void pfa_init(multiboot_info_t * mbinfo, kernel_memory_info_t * kmem)
     // allocate enough space
     bitmap_bits_length = ram_size / PAGE_SIZE;
     bitmap_length = div_ceil(bitmap_bits_length, 32); // if number of bits doens't divded by 32 add an extra element
-    bitmap_size = bitmap_length * sizeof(*pfa_storage.bitmap); // in byte    bitmap_vaddr = paging_find_free_next_kernel_vaddr(bitmap_size);
+    bitmap_size = bitmap_length * sizeof(*pfa_storage.bitmap); // in bytes 
     bitmap_vaddr = paging_find_free_next_kernel_vaddr(bitmap_size);
     paging_commit_mem(bitmap_vaddr, kmem->_kernel_physical_end, bitmap_size, PAGING_FLAGS_READ_WRITE | PAGING_FLAGS_PRIV_KERNEL); 
     memset((void *)bitmap_vaddr, 0, bitmap_size);
@@ -110,15 +110,13 @@ void pfa_init(multiboot_info_t * mbinfo, kernel_memory_info_t * kmem)
     return;
 }
 
-unsigned int pfa_alloc()
-{
-    unsigned int array_len = pfa_storage.size / 32;
-    unsigned int canidate = 0xFFFFFFFF;
 
-    if (pfa_storage.size % 32 != 0)
-    {
-        array_len += 1;
-    }
+unsigned int pfa_alloc(unsigned int num)
+{
+    unsigned int array_len = div_ceil(pfa_storage.size, 8 * sizeof(*pfa_storage.bitmap));
+    unsigned int canidate = 0xFFFFFFFF;
+    unsigned int pages_found = 0; 
+    unsigned int start_paddr = 0;
 
     for (unsigned int i = 0; i < array_len; i++)
     {
@@ -126,17 +124,31 @@ unsigned int pfa_alloc()
         if(canidate != 0xFFFFFFFF)
         {
             // there is turned of bit in this element
-            for (unsigned char j = 0; j < 8; j++)
+            for (unsigned char j = 0; j < 8 * sizeof(*pfa_storage.bitmap); j++)
             {
                 if ((canidate & 1 << j) == 0)
                 {
-                    set_frame(i * 8 * sizeof(*pfa_storage.bitmap) + j);
-                    return ((i * 32) + j) * 4096;
+                    start_paddr = ((i * 32) + j) * PAGE_SIZE;
+                    pages_found += 1;
+                    if (pages_found == num)
+                    {
+                        for(unsigned int k=start_paddr/PAGE_SIZE; k < start_paddr/PAGE_SIZE + pages_found; k++)
+                        {
+                            set_frame(k);
+                        }
+                        return start_paddr;
+                    }
+                }
+                else
+                {
+                    start_paddr = 0; 
+                    pages_found = 0;
                 }
             }
-            
         }
+            
     }
+
     PANIC("PFA: No more frames left!");
     return 0x0BADC0DE;
 }

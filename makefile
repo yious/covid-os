@@ -13,10 +13,14 @@ ASFLAGS = -f elf -g -F dwarf
 
 all: os.iso
 
+.PHONY: apps
+apps:
+	make -C apps
+
 kernel.elf: $(OBJECTS) link.ld
 	$(LD) $(LFLAGS) $(OBJECTS) -L "/usr/lib/gcc/x86_64-linux-gnu/7/32/" -lgcc -o kernel.elf 
 
-os.iso: kernel.elf
+os.iso: kernel.elf apps
 	cp kernel.elf iso/boot/kernel.elf
 	cp apps/program iso/modules/program
 	genisoimage -R \
@@ -49,4 +53,5 @@ gdb: os.iso
 	$(AS) $(ASFLAGS) $< -o $@
 
 clean:
+	make -C apps clean
 	rm -rf *.o kernel.elf os.iso

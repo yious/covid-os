@@ -21,9 +21,9 @@ void panic(const char *message, char *file, unsigned int line)
 {
     asm volatile("cli"); // Disable interrupts.
 
-    fb_clear();
+    // fb_clear();
 
-    fb_puts("PANIC(");
+    fb_puts("\nPANIC(");
     fb_puts(message);
     fb_puts(") at ");
     fb_puts(file);
@@ -32,4 +32,13 @@ void panic(const char *message, char *file, unsigned int line)
     fb_puts("\n");
     // Halt by going into an infinite loop.
     for(;;);
+}
+
+void * memcpy(void * destination, const void * source, unsigned int num)
+{
+    for (unsigned int i = 0; i < num; i++)
+    {
+        *((char *)destination + i) = *((char *)source + i);
+    }
+    return destination;
 }
